@@ -1,0 +1,54 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Umfragen</title>
+</head>
+<body>
+  <div id="onerow"></div>
+
+  <script>
+    const script1 = {
+      div_id: "onerow",
+      theme_style: 7,
+      order_by: 1,
+      display_mode: 3,
+      limit_surveys: 8
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const ext_user_id = urlParams.get("uid") || "demo-user";
+
+    const config = {
+      general_config: {
+        app_id: 28226,
+        ext_user_id: ext_user_id,
+        subid_1: "",
+        subid_2: "",
+      },
+      style_config: {
+        text_color: "#2b2b2b",
+        survey_box: {
+          topbar_background_color: "#1DA05E",
+          box_background_color: "white",
+          rounded_borders: true,
+          stars_filled: "#ffaf20",
+          stars_empty: "rgb(221 221 221)",
+          accent_color_small_box: "#1DA05E",
+          place_stars_bottom_small_box: true
+        }
+      },
+      script_config: [script1],
+      debug: false,
+      useIFrame: true,
+      iFramePosition: 3
+    };
+
+    window.config = config;
+  </script>
+
+  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+</body>
+</html>
