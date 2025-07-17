@@ -1,54 +1,105 @@
-
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Umfragen</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CPX Umfragen</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #e0e0e0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h1 {
+      color: #05B9F2;
+      margin-bottom: 20px;
+    }
+
+    #count_surveys {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      color: #B9DB1B;
+    }
+
+    #script {
+      width: 100%;
+      max-width: 700px;
+    }
+  </style>
 </head>
 <body>
-  <div id="onerow"></div>
+
+  <h1>🎯 Verfügbare Umfragen</h1>
+
+  <a href="#" onclick="loadIFrame(); return false;">
+    <div id="count_surveys">Lade Umfragen...</div>
+  </a>
+
+  <div id="script"></div>
 
   <script>
     const script1 = {
-      div_id: "onerow",
-      theme_style: 7,
+      div_id: "script",
+      theme_style: 5,
       order_by: 1,
-      display_mode: 3,
-      limit_surveys: 8
+      limit_surveys: 8,
+      display_mode: 3
     };
-
-    const urlParams = new URLSearchParams(window.location.search);
-    const ext_user_id = urlParams.get("uid") || "demo-user";
 
     const config = {
       general_config: {
-        app_id: 28226,
-        ext_user_id: ext_user_id,
+        app_id: 28226, // DEINE App-ID ✅
+        ext_user_id: "", // Hier optional: deine dynamische User-ID (z.B. von Wix einsetzen)
         subid_1: "",
-        subid_2: "",
+        subid_2: ""
       },
       style_config: {
-        text_color: "#2b2b2b",
+        text_color: "#e0e0e0",
         survey_box: {
-          topbar_background_color: "#1DA05E",
-          box_background_color: "white",
+          topbar_background_color: "#05B9F2",
+          box_background_color: "#1f1f1f",
           rounded_borders: true,
-          stars_filled: "#ffaf20",
-          stars_empty: "rgb(221 221 221)",
-          accent_color_small_box: "#1DA05E",
+          stars_filled: "#FFD700",
+          stars_empty: "#333",
+          accent_color_small_box: "#05B9F2",
           place_stars_bottom_small_box: true
         }
       },
       script_config: [script1],
       debug: false,
       useIFrame: true,
-      iFramePosition: 3
+      iFramePosition: 3,
+      functions: {
+        no_surveys_available: () => {
+          document.getElementById("count_surveys").innerText = 'Zurzeit keine Umfragen verfügbar 😕';
+        },
+        count_new_surveys: (count) => {
+          document.getElementById("count_surveys").innerText = count + ' Umfragen verfügbar 🎉';
+        },
+        get_all_surveys: (surveys) => {
+          console.log("Alle Umfragen:", surveys);
+        },
+        get_transaction: (transactions) => {
+          console.log("Transaktionen:", transactions);
+        }
+      }
     };
 
     window.config = config;
+
+    function loadIFrame(surveyId) {
+      window.dispatchEvent(new CustomEvent("triggerFrame", { detail: { surveyId: surveyId } }));
+    }
   </script>
 
   <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+
 </body>
 </html>
+
