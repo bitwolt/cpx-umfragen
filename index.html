@@ -1,60 +1,39 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Verfügbare Umfragen</title>
+  <meta charset="UTF-8">
+  <title>CPX Umfragen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       margin: 0;
-      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #111;
+      font-family: Arial, sans-serif;
+      background-color: #000;
       color: #fff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 40px 20px;
     }
-    h1 {
-      color: #00c2ff;
-      font-size: 2rem;
-      margin-bottom: 10px;
-    }
-    #count_surveys {
-      font-size: 1.2rem;
-      margin-bottom: 20px;
-      color: yellow;
-      text-decoration: underline;
-      cursor: pointer;
-    }
-    #script {
-      width: 100%;
-      max-width: 800px;
+    #fullcontent {
+      padding: 20px;
     }
   </style>
+  <script type="text/javascript" src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
 </head>
 <body>
-  <h1>🎯 Verfügbare Umfragen</h1>
-  <a href="#" onclick="loadIFrame();"><div id="count_surveys">Lade Umfragen...</div></a>
-  <div id="script"></div>
+
+  <div id="fullcontent"></div>
 
   <script>
-    const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('id') || 'guest';
-
     const script1 = {
-      div_id: "script",
-      theme_style: 5,
+      div_id: "fullcontent",
+      theme_style: 1, // Fullscreen-Layout
       order_by: 1,
-      limit_surveys: 8,
-      display_mode: 3
+      display_mode: 3,
+      limit_surveys: 8
     };
 
     const config = {
       general_config: {
-        app_id: 28226,
-        ext_user_id: userId,
+        app_id: 28226, // Deine App-ID
+        ext_user_id: "guest", // Oder dynamisch einsetzen
         subid_1: "",
         subid_2: ""
       },
@@ -63,7 +42,7 @@
         survey_box: {
           topbar_background_color: "#1DA05E",
           box_background_color: "white",
-          rounded_borders: false,
+          rounded_borders: true,
           stars_filled: "#ffaf20",
           stars_empty: "rgb(221 221 221)",
           accent_color_small_box: "#1DA05E",
@@ -73,29 +52,11 @@
       script_config: [script1],
       debug: false,
       useIFrame: true,
-      iFramePosition: 3,
-      functions: {
-        no_surveys_available: () => {
-          document.getElementById("count_surveys").innerHTML = '0 Umfragen verfügbar';
-        },
-        count_new_surveys: (count) => {
-          document.getElementById("count_surveys").innerHTML = count + ' Umfragen verfügbar';
-        },
-        get_all_surveys: (surveys) => {
-          console.log("Alle Umfragen:", surveys);
-        },
-        get_transaction: (transactions) => {
-          console.log("Transaktionen:", transactions);
-        }
-      }
+      iFramePosition: 3
     };
 
     window.config = config;
-
-    function loadIFrame(surveyId) {
-      window.dispatchEvent(new CustomEvent("triggerFrame", { detail: { surveyId: surveyId } }));
-    }
   </script>
-  <script type="text/javascript" src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+
 </body>
 </html>
