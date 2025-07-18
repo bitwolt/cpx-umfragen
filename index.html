@@ -1,68 +1,101 @@
-// DO not forget to set you app_id and the ext_user_id below!!!
-// Demo https://demo.cpx-research.com/code/countsurveys_example.php
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Verfügbare Umfragen</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #111;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 40px 20px;
+    }
+    h1 {
+      color: #00c2ff;
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+    #count_surveys {
+      font-size: 1.2rem;
+      margin-bottom: 20px;
+      color: yellow;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    #script {
+      width: 100%;
+      max-width: 800px;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎯 Verfügbare Umfragen</h1>
+  <a href="#" onclick="loadIFrame();"><div id="count_surveys">Lade Umfragen...</div></a>
+  <div id="script"></div>
 
-<script>
-	    const script1 = {
-                div_id: "script", // string // Entry point for the script
-                theme_style: 5, // int // Theme: Select 1 for fullscreen, 2 for sidebar, 3 for sidebar single item
-                order_by: 1, // int // Sort surveys (optional): Select 1 for best score (default), 2 for best money, 3 for best conversion rate
-                limit_surveys: 8, // int // Limit the number of surveys displayed (optional). Default is 12.
-                display_mode: 3, 
-            };
- 
-const config = {
-    general_config: {
-        app_id: 8619, // replace your app_id
-        ext_user_id: "", // replace the userid from your user
-        subid_1: "", // string
-        subid_2: "", // string
-    },
-    style_config: {
-        text_color: "#2b2b2b", // string // hex, rgba, colorcode
-         survey_box: {
-            topbar_background_color: "#1DA05E", // string // hex, rgba, colorcode
-            box_background_color: "white", // string // hex, rgba, colorcode
-            rounded_borders: false, // boolean true || false
-            stars_filled: "#ffaf20", // string // hex, rgba, colorcode
-            stars_empty: "rgb(221 221 221)", // string, rgb, colorcode
-            accent_color_small_box: "#1DA05E", // string, rgb, colorcode defines the accent color for the row box layout
-            place_stars_bottom_small_box: true // default: false (stars are top)
-        },  
-    },
-    script_config: [script1], // Object Array
-    debug: false, // boolean
-     useIFrame: true, //boolean    
-     iFramePosition: 3, // 1 right (default), 2 left // 3 = center
-    functions: {
-        no_surveys_available: () =>
-        {
-            document.getElementById("count_surveys").innerHTML = '0 Surveys available';
-        }, // Function without parameter, NEVER USE window.alert... because of infinite loop
-        count_new_surveys: (countsurveys) =>
-        {
-            document.getElementById("count_surveys").innerHTML = countsurveys+' Surveys available';
-        },
-        get_all_surveys: (surveys) =>
-        {
-            console.log("get all surveys function here, surveys: ", surveys);
-        },
-        get_transaction: (transactions) =>
-        {
-            console.log("transaction function here, transaction: ", transactions);
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get('id') || 'guest';
+
+    const script1 = {
+      div_id: "script",
+      theme_style: 5,
+      order_by: 1,
+      limit_surveys: 8,
+      display_mode: 3
+    };
+
+    const config = {
+      general_config: {
+        app_id: 28226,
+        ext_user_id: userId,
+        subid_1: "",
+        subid_2: ""
+      },
+      style_config: {
+        text_color: "#2b2b2b",
+        survey_box: {
+          topbar_background_color: "#1DA05E",
+          box_background_color: "white",
+          rounded_borders: false,
+          stars_filled: "#ffaf20",
+          stars_empty: "rgb(221 221 221)",
+          accent_color_small_box: "#1DA05E",
+          place_stars_bottom_small_box: true
         }
-        
-        
-  }  
- 
- 
-};
- 
-	window.config = config;
- 
-                 function loadIFrame(surveyId)  {
-                        window.dispatchEvent(new CustomEvent("triggerFrame", {detail : {surveyId: surveyId}}));
-                    }
-    </script>
-<a href="#" onclick="loadIFrame();" ><div id="count_surveys"></div></a>
-<div id="script"></div>
-<script type="text/javascript" src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+      },
+      script_config: [script1],
+      debug: false,
+      useIFrame: true,
+      iFramePosition: 3,
+      functions: {
+        no_surveys_available: () => {
+          document.getElementById("count_surveys").innerHTML = '0 Umfragen verfügbar';
+        },
+        count_new_surveys: (count) => {
+          document.getElementById("count_surveys").innerHTML = count + ' Umfragen verfügbar';
+        },
+        get_all_surveys: (surveys) => {
+          console.log("Alle Umfragen:", surveys);
+        },
+        get_transaction: (transactions) => {
+          console.log("Transaktionen:", transactions);
+        }
+      }
+    };
+
+    window.config = config;
+
+    function loadIFrame(surveyId) {
+      window.dispatchEvent(new CustomEvent("triggerFrame", { detail: { surveyId: surveyId } }));
+    }
+  </script>
+  <script type="text/javascript" src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+</body>
+</html>
