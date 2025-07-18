@@ -16,10 +16,11 @@
   <div id="fullcontent"></div>
 
   <script>
-    // User-ID aus URL lesen (z. B. ?uid=xyz)
+    // ✅ UID aus URL
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("uid") || "guest"; // Fallback falls keine UID übergeben wurde
+    const userId = urlParams.get("uid") || "guest";
 
+    // ✅ CPX-Konfiguration
     const script1 = {
       div_id: "fullcontent",
       theme_style: 1,
@@ -54,6 +55,7 @@
     window.config = config;
   </script>
 
-  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
+  <!-- ✅ Script nach window.config laden -->
+  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js" async></script>
 </body>
 </html>
