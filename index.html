@@ -16,6 +16,10 @@
   <div id="fullcontent"></div>
 
   <script>
+    // User-ID aus URL lesen (z. B. ?uid=xyz)
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get("uid") || "guest"; // Fallback falls keine UID übergeben wurde
+
     const script1 = {
       div_id: "fullcontent",
       theme_style: 1,
@@ -27,7 +31,7 @@
     const config = {
       general_config: {
         app_id: 28226,
-        ext_user_id: "guest"
+        ext_user_id: userId
       },
       style_config: {
         text_color: "#2b2b2b",
