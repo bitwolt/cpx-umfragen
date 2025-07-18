@@ -8,7 +8,11 @@
     html, body {
       margin: 0;
       padding: 0;
-      background: transparent; /* ✅ Hintergrund jetzt transparent */
+      background: transparent !important;
+    }
+
+    #fullcontent {
+      background: transparent !important;
     }
   </style>
 </head>
@@ -16,9 +20,9 @@
   <div id="fullcontent"></div>
 
   <script>
-    // ✅ UID aus URL lesen (?uid=xyz)
+    // User-ID aus URL lesen (z. B. ?uid=xyz)
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("uid") || "guest";
+    const userId = urlParams.get("uid") || "guest"; // Fallback falls keine UID übergeben wurde
 
     const script1 = {
       div_id: "fullcontent",
@@ -36,12 +40,12 @@
       style_config: {
         text_color: "#2b2b2b",
         survey_box: {
-          topbar_background_color: "#05B9F2",             // ✅ dein Blau
-          box_background_color: "transparent",            // ✅ transparent statt weiß
+          topbar_background_color: "#05B9F2", // dein Blauton
+          box_background_color: "white",
           rounded_borders: true,
           stars_filled: "#ffaf20",
           stars_empty: "rgb(221 221 221)",
-          accent_color_small_box: "#05B9F2",              // ✅ Blau bleibt
+          accent_color_small_box: "#05B9F2",
           place_stars_bottom_small_box: true
         }
       },
@@ -54,6 +58,6 @@
     window.config = config;
   </script>
 
-  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js" async></script>
+  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
 </body>
 </html>
