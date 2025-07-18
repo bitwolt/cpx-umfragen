@@ -16,11 +16,10 @@
   <div id="fullcontent"></div>
 
   <script>
-    // ✅ UID aus URL
+    // User-ID aus URL holen (?uid=xyz)
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get("uid") || "guest";
 
-    // ✅ CPX-Konfiguration
     const script1 = {
       div_id: "fullcontent",
       theme_style: 1,
@@ -37,12 +36,12 @@
       style_config: {
         text_color: "#2b2b2b",
         survey_box: {
-          topbar_background_color: "#1DA05E",
+          topbar_background_color: "#05B9F2",             // ✅ dein neues Blau
           box_background_color: "white",
           rounded_borders: true,
           stars_filled: "#ffaf20",
           stars_empty: "rgb(221 221 221)",
-          accent_color_small_box: "#1DA05E",
+          accent_color_small_box: "#05B9F2",              // ✅ auch hier das neue Blau
           place_stars_bottom_small_box: true
         }
       },
@@ -55,7 +54,6 @@
     window.config = config;
   </script>
 
-  <!-- ✅ Script nach window.config laden -->
   <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js" async></script>
 </body>
 </html>
