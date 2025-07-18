@@ -4,15 +4,21 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CPX Umfragen</title>
+
+  <!-- ✅ Google Fonts Oswald Medium einbinden -->
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
+
   <style>
     html, body {
       margin: 0;
       padding: 0;
       background: transparent !important;
+      font-family: 'Oswald', sans-serif;
     }
 
     #fullcontent {
       background: transparent !important;
+      font-family: 'Oswald', sans-serif;
     }
   </style>
 </head>
@@ -22,7 +28,7 @@
   <script>
     // User-ID aus URL lesen (z. B. ?uid=xyz)
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("uid") || "guest"; // Fallback falls keine UID übergeben wurde
+    const userId = urlParams.get("uid") || "guest";
 
     const script1 = {
       div_id: "fullcontent",
@@ -40,7 +46,7 @@
       style_config: {
         text_color: "#2b2b2b",
         survey_box: {
-          topbar_background_color: "#05B9F2", // dein Blauton
+          topbar_background_color: "#05B9F2",
           box_background_color: "white",
           rounded_borders: true,
           stars_filled: "#ffaf20",
