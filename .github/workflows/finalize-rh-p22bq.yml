@@ -1,0 +1,162 @@
+name: Finalize RH P22BQ artifact
+
+on:
+  push:
+    branches:
+      - chatgpt/rh-p22bq-temp-20260722
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/rh-p22bq-temp-20260722
+          fetch-depth: 0
+
+      - name: Correct deterministic counters
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('scratch/generated-rh-patches/RH_V2104_P22BQ_O2_DEBRUIJN_STANDARD_HALF_POSITIVITY_AND_TWO_FIELD_ENDPOINT_V1.ps1')
+          text = path.read_text(encoding='utf-8-sig')
+
+          replacements = {
+              'expected_main_theory_declarations=23': 'expected_main_theory_declarations=24',
+              'expected_resulting_formal_points=1780': 'expected_resulting_formal_points=1781',
+              'expected_audited_theorem_count=408': 'expected_audited_theorem_count=409',
+              '$mainDeclarationCount -ne 23': '$mainDeclarationCount -ne 24',
+              '$currentFormalPoints -ne 1780': '$currentFormalPoints -ne 1781',
+              '$auditNames.Count -ne 408': '$auditNames.Count -ne 409',
+              'length p22bq_audited_theorems = 408': 'length p22bq_audited_theorems = 409',
+              'audited_theorem_count=408': 'audited_theorem_count=409',
+              'current_registered_formal_points=1780': 'current_registered_formal_points=1781',
+              'new_registered_formal_points=28': 'new_registered_formal_points=29',
+              'current_registered_formal_points -ne 1780': 'current_registered_formal_points -ne 1781',
+              'audited_theorem_count -ne 408': 'audited_theorem_count -ne 409',
+              'CURRENT_INTEGRATED_REGISTERED_FORMAL_POINTS=1780': 'CURRENT_INTEGRATED_REGISTERED_FORMAL_POINTS=1781',
+              'NEW_REGISTERED_FORMAL_POINTS_INTEGRATED=28': 'NEW_REGISTERED_FORMAL_POINTS_INTEGRATED=29',
+              'AUDITED_THEOREM_COUNT=408': 'AUDITED_THEOREM_COUNT=409',
+          }
+
+          for old, new in replacements.items():
+              if old not in text:
+                  raise SystemExit(f'missing deterministic replacement source: {old}')
+              text = text.replace(old, new)
+
+          # Exact structured status-object forms are not covered by the textual
+          # output forms above.
+          structured = {
+              'current_registered_formal_points=1780;': 'current_registered_formal_points=1781;',
+              'new_registered_formal_points=28;': 'new_registered_formal_points=29;',
+              'audited_theorem_count=408;': 'audited_theorem_count=409;',
+              '[int]$written.current_registered_formal_points -ne 1780': '[int]$written.current_registered_formal_points -ne 1781',
+              '[int]$written.audited_theorem_count -ne 408': '[int]$written.audited_theorem_count -ne 409',
+          }
+          for old, new in structured.items():
+              if old in text:
+                  text = text.replace(old, new)
+
+          path.write_text(text, encoding='utf-8', newline='\n')
+
+      - name: Normalize bytes, derive body hash, and run AST/static checks
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $path = 'scratch/generated-rh-patches/RH_V2104_P22BQ_O2_DEBRUIJN_STANDARD_HALF_POSITIVITY_AND_TWO_FIELD_ENDPOINT_V1.ps1'
+
+          $raw = [System.IO.File]::ReadAllText($path,[System.Text.Encoding]::UTF8)
+          $raw = $raw -replace "`r?`n", "`r`n"
+          [System.IO.File]::WriteAllText($path,$raw,[System.Text.UTF8Encoding]::new($true))
+
+          $tokens = $null
+          $errors = $null
+          $ast = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+          if ($errors.Count -ne 0) {
+            $errors | Format-List | Out-String | Write-Host
+            throw 'PowerShell AST parse failed before body-hash insertion.'
+          }
+
+          $assignments = @($ast.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Left.Extent.Text -eq '$theoryBody'
+          },$true))
+          if ($assignments.Count -ne 1) { throw "Expected exactly one theoryBody assignment, found $($assignments.Count)." }
+
+          $body = [string]$assignments[0].Right.Value
+          $bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+          $sha = [System.Security.Cryptography.SHA256]::Create()
+          try {
+            $bodyHash = [System.BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','')
+          }
+          finally { $sha.Dispose() }
+
+          $text = [System.IO.File]::ReadAllText($path,[System.Text.Encoding]::UTF8)
+          $placeholder = '__EXPECTED_BODY_SHA256__'
+          if (($text.Split($placeholder).Count - 1) -ne 1) { throw 'Expected exactly one body-hash placeholder.' }
+          $text = $text.Replace($placeholder,$bodyHash)
+          $text = $text -replace "`r?`n", "`r`n"
+          [System.IO.File]::WriteAllText($path,$text,[System.Text.UTF8Encoding]::new($true))
+
+          $tokens2 = $null
+          $errors2 = $null
+          $ast2 = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens2,[ref]$errors2)
+          if ($errors2.Count -ne 0) {
+            $errors2 | Format-List | Out-String | Write-Host
+            throw 'PowerShell AST parse failed after finalization.'
+          }
+
+          $assignment2 = @($ast2.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Left.Extent.Text -eq '$theoryBody'
+          },$true))
+          if ($assignment2.Count -ne 1) { throw 'Final theoryBody assignment count is not one.' }
+          $body2 = [string]$assignment2[0].Right.Value
+          $declPattern = '(?m)^\s*(definition|lemma|theorem|corollary|record|datatype|inductive|fun)\s+'
+          $mainCount = [regex]::Matches($body2,$declPattern).Count
+          if ($mainCount -ne 24) { throw "Final main declaration count is $mainCount, expected 24." }
+
+          $statusAssignments = @($ast2.FindAll({
+            param($node)
+            $node -is [System.Management.Automation.Language.AssignmentStatementAst] -and
+            $node.Left.Extent.Text -eq '$statusTheory'
+          },$true))
+          if ($statusAssignments.Count -ne 1) { throw "Expected exactly one statusTheory assignment, found $($statusAssignments.Count)." }
+          $statusCount = [regex]::Matches([string]$statusAssignments[0].Right.Value,$declPattern).Count
+          if ($statusCount -ne 5) { throw "Final status declaration count is $statusCount, expected 5." }
+
+          $forbidden = '\bsorry\b|\boops\b|\baxiomatization\b|(?m)^\s*oracle(?:\s|$)|trusted_|\bundefined\b|\bskip_proofs\b|Thm\.add_axiom|Thm\.add_oracle|\bnlinarith\b|\bsos\b|(?m)^\s*by\s+ring\s*$|(?m)^\s*calc\s*$'
+          if ($body2 -match $forbidden) { throw 'Final Isabelle body contains forbidden content.' }
+
+          $fileHash = (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash
+          $size = (Get-Item -LiteralPath $path).Length
+          @(
+            "FILE_SHA256=$fileHash"
+            "BODY_SHA256=$bodyHash"
+            "SIZE_BYTES=$size"
+            "MAIN_DECLARATIONS=$mainCount"
+            "STATUS_DECLARATIONS=$statusCount"
+            "EXPECTED_FORMAL_POINTS=1781"
+            "EXPECTED_AUDITED_THEOREMS=409"
+            "POWERSHELL_AST_ERRORS=0"
+            "UTF8_BOM=true"
+            "CRLF=true"
+          ) | Set-Content -LiteralPath 'scratch/generated-rh-patches/RH_V2104_P22BQ_CHECKSUMS.txt' -Encoding utf8
+
+      - name: Commit finalized artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scratch/generated-rh-patches/RH_V2104_P22BQ_O2_DEBRUIJN_STANDARD_HALF_POSITIVITY_AND_TWO_FIELD_ENDPOINT_V1.ps1
+          git add scratch/generated-rh-patches/RH_V2104_P22BQ_CHECKSUMS.txt
+          git commit -m 'chore: finalize P22BQ artifact and checksums'
+          git push origin HEAD:chatgpt/rh-p22bq-temp-20260722
