@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - chatgpt/rh-p22bq-temp-20260722
+  pull_request:
+    branches:
+      - main
 
 permissions:
   contents: write
@@ -49,8 +52,6 @@ jobs:
                   raise SystemExit(f'missing deterministic replacement source: {old}')
               text = text.replace(old, new)
 
-          # Exact structured status-object forms are not covered by the textual
-          # output forms above.
           structured = {
               'current_registered_formal_points=1780;': 'current_registered_formal_points=1781;',
               'new_registered_formal_points=28;': 'new_registered_formal_points=29;',
