@@ -1,0 +1,68 @@
+name: Debug RH P22BQ artifact
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  debug:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/rh-p22bq-temp-20260722
+          fetch-depth: 0
+
+      - name: Capture diagnostics
+        shell: pwsh
+        run: |
+          $path = 'scratch/generated-rh-patches/RH_V2104_P22BQ_O2_DEBRUIJN_STANDARD_HALF_POSITIVITY_AND_TWO_FIELD_ENDPOINT_V1.ps1'
+          $out = [System.Collections.Generic.List[string]]::new()
+          try {
+            $raw = [System.IO.File]::ReadAllText($path,[System.Text.Encoding]::UTF8)
+            $raw = $raw -replace "`r?`n", "`r`n"
+            [System.IO.File]::WriteAllText($path,$raw,[System.Text.UTF8Encoding]::new($true))
+            $tokens = $null
+            $errors = $null
+            $ast = [System.Management.Automation.Language.Parser]::ParseFile($path,[ref]$tokens,[ref]$errors)
+            [void]$out.Add('AST_ERROR_COUNT=' + $errors.Count)
+            foreach ($e in $errors) {
+              [void]$out.Add('AST_ERROR=' + $e.ErrorId + '|' + $e.Message + '|' + $e.Extent.Text)
+            }
+            $assignments = @($ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left.Extent.Text -eq '$theoryBody' },$true))
+            [void]$out.Add('THEORY_ASSIGNMENT_COUNT=' + $assignments.Count)
+            if ($assignments.Count -eq 1) {
+              $body = [string]$assignments[0].Right.Value
+              $pattern = '(?m)^\s*(definition|lemma|theorem|corollary|record|datatype|inductive|fun)\s+'
+              [void]$out.Add('MAIN_DECLARATIONS=' + [regex]::Matches($body,$pattern).Count)
+              $bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+              $sha = [System.Security.Cryptography.SHA256]::Create()
+              try { [void]$out.Add('BODY_SHA256=' + [System.BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','')) }
+              finally { $sha.Dispose() }
+            }
+            $statuses = @($ast.FindAll({ param($n) $n -is [System.Management.Automation.Language.AssignmentStatementAst] -and $n.Left.Extent.Text -eq '$statusTheory' },$true))
+            [void]$out.Add('STATUS_ASSIGNMENT_COUNT=' + $statuses.Count)
+            if ($statuses.Count -eq 1) {
+              $pattern = '(?m)^\s*(definition|lemma|theorem|corollary|record|datatype|inductive|fun)\s+'
+              [void]$out.Add('STATUS_DECLARATIONS=' + [regex]::Matches([string]$statuses[0].Right.Value,$pattern).Count)
+            }
+          }
+          catch {
+            [void]$out.Add('EXCEPTION=' + $_.Exception.GetType().FullName + '|' + $_.Exception.Message)
+          }
+          $out | Set-Content -LiteralPath 'scratch/generated-rh-patches/P22BQ_DEBUG.txt' -Encoding utf8
+
+      - name: Commit diagnostics
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add scratch/generated-rh-patches/P22BQ_DEBUG.txt
+          git commit -m 'chore: capture P22BQ debug diagnostics'
+          git push origin HEAD:chatgpt/rh-p22bq-temp-20260722
