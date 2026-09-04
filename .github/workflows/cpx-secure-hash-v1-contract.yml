@@ -1,0 +1,22 @@
+name: CPX Secure Hash V1 Contract
+
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'tests/cpx-secure-hash-v1-contract.mjs'
+      - '.github/workflows/cpx-secure-hash-v1-contract.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  contract:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Signed wrapper contract
+        run: node tests/cpx-secure-hash-v1-contract.mjs
