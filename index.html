@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>CPX Umfragen</title>
 
-  <!-- ✅ Google Fonts Oswald Medium einbinden -->
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500&display=swap" rel="stylesheet">
 
   <style>
@@ -20,50 +19,71 @@
       background: transparent !important;
       font-family: 'Oswald', sans-serif;
     }
+
+    .secure-error {
+      margin: 24px;
+      text-align: center;
+      color: #475467;
+    }
   </style>
 </head>
 <body>
   <div id="fullcontent"></div>
 
   <script>
-    // User-ID aus URL lesen (z. B. ?uid=xyz)
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get("uid") || "guest";
+    const userId = String(urlParams.get("uid") || "").trim();
+    const secureHash = String(urlParams.get("secure_hash") || "").trim().toLowerCase();
+    const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const MD5_HEX = /^[0-9a-f]{32}$/i;
 
-    const script1 = {
-      div_id: "fullcontent",
-      theme_style: 1,
-      order_by: 1,
-      display_mode: 3,
-      limit_surveys: 12
-    };
+    const target = document.getElementById("fullcontent");
 
-    const config = {
-      general_config: {
-        app_id: 28226,
-        ext_user_id: userId
-      },
-      style_config: {
-        text_color: "#2b2b2b",
-        survey_box: {
-          topbar_background_color: "#05B9F2",
-          box_background_color: "white",
-          rounded_borders: true,
-          stars_filled: "#ffaf20",
-          stars_empty: "rgb(221 221 221)",
-          accent_color_small_box: "#05B9F2",
-          place_stars_bottom_small_box: true
-        }
-      },
-      script_config: [script1],
-      debug: false,
-      useIFrame: false,
-      iFramePosition: 3
-    };
+    if (!UUID.test(userId) || !MD5_HEX.test(secureHash)) {
+      const error = document.createElement("p");
+      error.className = "secure-error";
+      error.textContent = "Umfragen konnten nicht sicher geladen werden.";
+      target.replaceChildren(error);
+    } else {
+      const script1 = {
+        div_id: "fullcontent",
+        theme_style: 1,
+        order_by: 1,
+        display_mode: 3,
+        limit_surveys: 12
+      };
 
-    window.config = config;
+      const config = {
+        general_config: {
+          app_id: 28226,
+          ext_user_id: userId,
+          secure_hash: secureHash
+        },
+        style_config: {
+          text_color: "#2b2b2b",
+          survey_box: {
+            topbar_background_color: "#05B9F2",
+            box_background_color: "white",
+            rounded_borders: true,
+            stars_filled: "#ffaf20",
+            stars_empty: "rgb(221 221 221)",
+            accent_color_small_box: "#05B9F2",
+            place_stars_bottom_small_box: true
+          }
+        },
+        script_config: [script1],
+        debug: false,
+        useIFrame: false,
+        iFramePosition: 3
+      };
+
+      window.config = config;
+
+      const cpxScript = document.createElement("script");
+      cpxScript.src = "https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js";
+      cpxScript.async = true;
+      document.body.appendChild(cpxScript);
+    }
   </script>
-
-  <script src="https://cdn.cpx-research.com/assets/js/script_tag_v2.0.js"></script>
 </body>
 </html>
