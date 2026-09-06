@@ -22,6 +22,13 @@
       background: #0b1822 !important;
       font-family: 'Oswald', sans-serif;
     }
+
+    html[data-theme="light"], html[data-theme="light"] body {
+      background: #f4f7fa !important;
+      color: #102238;
+      color-scheme: light;
+    }
+    html[data-theme="light"] #fullcontent { background: #f4f7fa !important; }
   </style>
 </head>
 <body>
@@ -31,6 +38,8 @@
     // User-ID aus URL lesen (z. B. ?uid=xyz)
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get("uid") || "guest";
+    const theme = (urlParams.get("theme") || "dark").toLowerCase() === "light" ? "light" : "dark";
+    document.documentElement.dataset.theme = theme;
 
     const script1 = {
       div_id: "fullcontent",
@@ -45,16 +54,17 @@
         app_id: 28226,
         ext_user_id: userId
       },
-      style_config: {
+      style_config: theme === "light" ? {
+        text_color: "#102238",
+        survey_box: {
+          topbar_background_color: "#05B9F2", box_background_color: "#ffffff", rounded_borders: true,
+          stars_filled: "#ffaf20", stars_empty: "#aab6c0", accent_color_small_box: "#05B9F2", place_stars_bottom_small_box: true
+        }
+      } : {
         text_color: "#eaf6fc",
         survey_box: {
-          topbar_background_color: "#05B9F2",
-          box_background_color: "#102331",
-          rounded_borders: true,
-          stars_filled: "#ffaf20",
-          stars_empty: "#607482",
-          accent_color_small_box: "#05B9F2",
-          place_stars_bottom_small_box: true
+          topbar_background_color: "#05B9F2", box_background_color: "#102331", rounded_borders: true,
+          stars_filled: "#ffaf20", stars_empty: "#607482", accent_color_small_box: "#05B9F2", place_stars_bottom_small_box: true
         }
       },
       script_config: [script1],
